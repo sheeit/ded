@@ -182,10 +182,9 @@ void editor_load_from_file(Editor *editor, FILE *file)
     editor_create_first_new_line(editor);
 
     static char chunk[640 * 1024];
+    static const size_t chunk_size = sizeof(chunk);
 
-    while (!feof(file)) {
-        size_t n = fread(chunk, 1, sizeof(chunk), file);
-
+    for (size_t n; (n = fread(chunk, 1, chunk_size, file)) > 0;) {
         String_View chunk_sv = {
             .data = chunk,
             .count = n
@@ -202,6 +201,9 @@ void editor_load_from_file(Editor *editor, FILE *file)
                 chunk_sv = SV_NULL;
             }
         }
+
+        if (n < chunk_size && feof(file))
+                break;
     }
 
     editor->cursor_row = 0;
